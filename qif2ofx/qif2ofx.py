@@ -60,12 +60,12 @@ def genofx(qif_file, fileDir, currency, acctid, trnuid, org, balance):
     header = str(make_header(version=220))
 
     file=os.path.splitext(fileDir)[0]+'.ofx'  # /create ofx file
+    print("Creating ofx file: " + file)
     with open(file, 'w') as filetowrite:
         filetowrite.write(header + pretty_message)
-
     return header + pretty_message
 
-def main(args):
+def main():
     parser = argparse.ArgumentParser('qif2ofx')
     parser.add_argument('--glob', required=True, help='Glob expression for QIF files, for example "./data/**/*.qif"')
     parser.add_argument('--currency', required=True, help='Currency, example: GBP')
