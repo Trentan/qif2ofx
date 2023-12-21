@@ -1,4 +1,5 @@
 import argparse
+import os
 from dataclasses import dataclass
 from typing import List
 from datetime import datetime
@@ -35,7 +36,7 @@ def qif_to_stmttrn(qif_file):
         ))
     return stmttrns
 
-def genofx(qif_file, currency, acctid, trnuid, org, balance):
+def genofx(qif_file, fileDir, currency, acctid, trnuid, org, balance):
     trans = qif_to_stmttrn(qif_file)
 
     balamt = Decimal(balance) + qif_file.balance()
@@ -58,9 +59,13 @@ def genofx(qif_file, currency, acctid, trnuid, org, balance):
     pretty_message = minidom.parseString(message).toprettyxml()
     header = str(make_header(version=220))
 
+    file=os.path.splitext(fileDir)[0]+'.ofx'  # /create ofx file
+    with open(file, 'w') as filetowrite:
+        filetowrite.write(header + pretty_message)
+
     return header + pretty_message
 
-def main():
+def main(args):
     parser = argparse.ArgumentParser('qif2ofx')
     parser.add_argument('--glob', required=True, help='Glob expression for QIF files, for example "./data/**/*.qif"')
     parser.add_argument('--currency', required=True, help='Currency, example: GBP')
@@ -74,6 +79,7 @@ def main():
     qif = QIFFile.parse_files(args.glob)
     print(genofx(
         qif,
+        args.glob,
         args.currency,
         args.acctid,
         args.trnuid,
