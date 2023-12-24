@@ -51,7 +51,6 @@ def genofx(qif_file, fileDir, currency, acctid, trnuid, org, balance, accttype):
     if(accttype.upper() == "SAVINGS"):
         # Savings account
         bankacctfrom = m.BANKACCTFROM(bankid=org, acctid=acctid, accttype="SAVINGS")  # OFX Section 11.3.1
-
         stmtrs = m.STMTRS(curdef=currency, bankacctfrom=bankacctfrom, banktranlist=banktranlist, ledgerbal=ledgerbal)
         stmttrnrs = m.STMTTRNRS(trnuid=trnuid, status=status, stmtrs=stmtrs)
         bankmsgsrsv1 = m.BANKMSGSRSV1(stmttrnrs)
