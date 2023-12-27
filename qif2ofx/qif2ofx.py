@@ -21,7 +21,8 @@ def qif_to_stmttrn(qif_file, savings):
         if(savings): # Reverse transaction if savings!
             trnamt = trnamt*-1
         trntype = 'DEBIT' if trnamt < 0 else 'CREDIT'
-        name = transaction.payee
+        name = transaction.payee.replace("036", "").rstrip()
+        # Some reason, HSBC randomly adds a 036 to approved creditcard...
         fitid = '{}{}{}'.format(dtposted, trnamt, name)
         stmttrns.append(m.STMTTRN(
             dtposted=dtposted,
