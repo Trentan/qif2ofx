@@ -35,7 +35,7 @@ def qif_to_stmttrn(qif_file, savings):
     return stmttrns
 
 
-def genofx(qif_file, fileDir, currency, acctid, trnuid, org, balance, accttype):
+def genofx(qif_file, file_dir, currency, acctid, trnuid, org, balance, accttype):
     trans = qif_to_stmttrn(qif_file, accttype.upper() == "SAVINGS")
 
     balamt = Decimal(balance) + qif_file.balance()
@@ -69,7 +69,7 @@ def genofx(qif_file, fileDir, currency, acctid, trnuid, org, balance, accttype):
     pretty_message = minidom.parseString(message).toprettyxml()
     header = str(make_header(version=220))
 
-    file = os.path.splitext(fileDir)[0] + '.ofx'  # /create ofx file
+    file = os.path.splitext(file_dir)[0] + '.ofx'  # /create ofx file
     print("Creating ofx file: " + file)
     with open(file, 'w') as filetowrite:
         filetowrite.write(header + pretty_message)
@@ -96,13 +96,13 @@ def main():
     os.chdir(args.glob)
     for file in glob("*.qif"):
         # print(os.path.splitext(file)[0])
-        fileName = os.path.splitext(file)[0]
-        match fileName:
-            case fileName if "Qif" in fileName:
+        file_name = os.path.splitext(file)[0]
+        match file_name:
+            case file_name if "Qif" in file_name:
                 args.org = "Suncorp"
                 args.acctid = "SuncorpMain"
                 args.accttype="SAVINGS"
-            case fileName if "TranHist" in fileName:
+            case file_name if "TranHist" in file_name:
                 args.org = "HSBC"
                 args.acctid = "HSBCcc"
                 args.accttype="CD"
