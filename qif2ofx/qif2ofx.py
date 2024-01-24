@@ -9,6 +9,7 @@ from xml.dom import minidom
 import ofxtools.models as m
 from ofxtools.header import make_header
 from ofxtools.utils import UTC
+from ofxtools.Parser import OFXTree
 
 from .qif import QIFFile
 
@@ -69,7 +70,7 @@ def genofx(qif_file, file_dir, currency, acctid, trnuid, org, balance, accttype)
     pretty_message = minidom.parseString(message).toprettyxml()
     header = str(make_header(version=220))
 
-    file = os.path.splitext(file_dir)[0] + '.ofx'  # /create ofx file
+    file = "OfxFix_" + os.path.splitext(file_dir)[0] + '.ofx'  # /create ofx file
     print("Creating ofx file: " + file)
     with open(file, 'w') as filetowrite:
         filetowrite.write(header + pretty_message)
@@ -93,30 +94,156 @@ def main():
 
     args = parser.parse_args()
 
+# Handling ofx files here first
+    print("Testing ofx change")
     os.chdir(args.glob)
-    for file in glob("*.qif"):
-        # print(os.path.splitext(file)[0])
-        file_name = os.path.splitext(file)[0]
-        match file_name:
-            case file_name if "Qif" in file_name:
-                args.org = "Suncorp"
-                args.acctid = "SuncorpMain"
-                args.accttype="SAVINGS"
-            case file_name if "TranHist" in file_name:
-                args.org = "HSBC"
-                args.acctid = "HSBCcc"
-                args.accttype="CD"
 
-        qif = QIFFile.parse_files(file)
-        # print(
-        genofx(
-            qif,
-            file,
-            args.currency,
-            args.acctid,
-            args.trnuid,
-            args.org,
-            args.balance,
-            args.accttype
-        )
-    # )
+    for file in glob("*.ofx"):
+        if not file.startswith("OfxFix"):
+            parser = OFXTree()
+            ofx = parser.parse(file)
+            # ofx = parser.convert()
+
+            # for AAA in ofx.findall('STMTTRN'):
+            # # for AAA in ofx.iter('STMTTRN'):
+            #     if AAA.find('FITID'):
+            #         AAA.find('FITID').text = AAA.find('DTPOSTED') + AAA.find('TRNAMT') + AAA.find('NAME')
+
+            # Fix badly designed STMTTRN, iterate and add date
+            for trn in ofx.iter('STMTTRN'):
+                fitid = '{}{}{}'.format(trn.find("DTPOSTED").text[0:14],trn.find("TRNAMT").text,trn.find("NAME").text.replace(" ", ""))
+                print(fitid)
+                trn.find("FITID").text = fitid
+
+            message = ET.tostring(ofx).decode()
+            pretty_message = minidom.parseString(message).toprettyxml()
+            header = str(make_header(version=220))
+            file = "OfxFix_" + os.path.splitext(file)[0] + '.ofx'  # overwrite ofx file
+            print("Creating ofx file: " + file)
+            with open(file, 'w') as filetowrite:
+                filetowrite.write(header + pretty_message)
+
+# Handling .qif files
+    for file in glob("*.qif"):
+        if not file.startswith("OfxFix"):
+            # print(os.path.splitext(file)[0])
+            file_name = os.path.splitext(file)[0]
+            match file_name:
+                case file_name if "Qif" in file_name:
+                    args.org = "Suncorp"
+                    args.acctid = "SuncorpMain"
+                    args.accttype="SAVINGS"
+                case file_name if "TranHist" in file_name:
+                    args.org = "HSBC"
+                    args.acctid = "HSBCcc"
+                    args.accttype="CD"
+
+            qif = QIFFile.parse_files(file)
+            # print(
+            genofx(
+                qif,
+                file,
+                args.currency,
+                args.acctid,
+                args.trnuid,
+                args.org,
+                args.balance,
+                args.accttype
+            )
+        # )
+
+# from ofxparse import OfxParser
+# # with codecs.open('file.ofx') as fileobj:
+#     ofx = OfxParser.parse(fileobj)
+#
+# # The OFX object
+#
+# ofx.account               # An Account object
+#
+# # AccountType
+# # (Unknown, Bank, CreditCard, Investment)
+#
+# # Account
+#
+# account = ofx.account
+# account.account_id        # The account number
+# account.number            # The account number (deprecated -- returns account_id)
+# account.routing_number    # The bank routing number
+# account.branch_id         # Transit ID / branch number
+# account.type              # An AccountType object
+# account.statement         # A Statement object
+# account.institution       # An Institution object
+#
+# # InvestmentAccount(Account)
+#
+# account.brokerid          # Investment broker ID
+# account.statement         # An InvestmentStatement object
+#
+# # Institution
+#
+# institution = account.institution
+# institution.organization
+# institution.fid
+#
+# # Statement
+#
+# statement = account.statement
+# statement.start_date          # The start date of the transactions
+# statement.end_date            # The end date of the transactions
+# statement.balance             # The money in the account as of the statement date
+# statement.available_balance   # The money available from the account as of the statement date
+# statement.transactions        # A list of Transaction objects
+#
+# # InvestmentStatement
+#
+# statement = account.statement
+# statement.positions           # A list of Position objects
+# statement.transactions        # A list of InvestmentTransaction objects
+#
+# # Transaction
+#
+# for transaction in statement.transactions:
+#     transaction.payee
+#     transaction.type
+#     transaction.date
+#     transaction.user_date
+#     transaction.amount
+#     transaction.id
+#     transaction.memo
+#     transaction.sic
+#     transaction.mcc
+#     transaction.checknum
+#
+# # InvestmentTransaction
+#
+# for transaction in statement.transactions:
+#     transaction.type
+#     transaction.tradeDate
+#     transaction.settleDate
+#     transaction.memo
+#     transaction.security      # A Security object
+#     transaction.income_type
+#     transaction.units
+#     transaction.unit_price
+#     transaction.comission
+#     transaction.fees
+#     transaction.total
+#     transaction.tferaction
+#
+# # Positions
+#
+# for position in statement.positions:
+#     position.security       # A Security object
+#     position.units
+#     position.unit_price
+#     position.market_value
+#
+# # Security
+#
+# security = transaction.security
+# # or
+# security = position.security
+# security.uniqueid
+# security.name
+# security.ticker
+# security.memo
