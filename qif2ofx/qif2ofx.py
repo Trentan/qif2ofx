@@ -97,8 +97,7 @@ def main():
 # Handling ofx files here first
     print("Testing ofx change")
     os.chdir(args.glob)
-
-    for file in glob("*.ofx"):
+    for file in glob("*.[ofx qfx]*"):
         if not file.startswith("OfxFix"):
             parser = OFXTree()
             ofx = parser.parse(file)
