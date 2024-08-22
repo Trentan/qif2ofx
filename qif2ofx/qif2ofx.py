@@ -100,7 +100,7 @@ def main():
     extensions = ('.ofx', '.qfx')
     for file in glob("*"):
         if not file.startswith("OfxFix"): #Already fixed!
-            if file.endswith(extensions): # Handling .ofx and qfx files
+            if file.lower().endswith(extensions): # Handling .ofx and qfx files
                 parser = OFXTree()
                 ofx = parser.parse(file)
                 # ofx = parser.convert()
@@ -124,7 +124,7 @@ def main():
                 with open(file, 'w') as filetowrite:
                     filetowrite.write(header + pretty_message)
 
-            if file.endswith('.qif'): # Handling .qif files
+            if file.lower().endswith('.qif'): # Handling .qif files
                 if not file.startswith("OfxFix"):
                     # print(os.path.splitext(file)[0])
                     file_name = os.path.splitext(file)[0]
