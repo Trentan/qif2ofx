@@ -97,59 +97,59 @@ def main():
 # Handling ofx files here first
     print("Testing ofx change")
     os.chdir(args.glob)
-    for file in glob("*.[ofx qfx]*"):
-        if not file.startswith("OfxFix"):
-            parser = OFXTree()
-            ofx = parser.parse(file)
-            # ofx = parser.convert()
+    extensions = ('.ofx', '.qfx')
+    for file in glob("*"):
+        if not file.startswith("OfxFix"): #Already fixed!
+            if file.endswith(extensions): # Handling .ofx and qfx files
+                parser = OFXTree()
+                ofx = parser.parse(file)
+                # ofx = parser.convert()
 
-            # for AAA in ofx.findall('STMTTRN'):
-            # # for AAA in ofx.iter('STMTTRN'):
-            #     if AAA.find('FITID'):
-            #         AAA.find('FITID').text = AAA.find('DTPOSTED') + AAA.find('TRNAMT') + AAA.find('NAME')
+                # for AAA in ofx.findall('STMTTRN'):
+                # # for AAA in ofx.iter('STMTTRN'):
+                #     if AAA.find('FITID'):
+                #         AAA.find('FITID').text = AAA.find('DTPOSTED') + AAA.find('TRNAMT') + AAA.find('NAME')
 
-            # Fix badly designed STMTTRN, iterate and add date
-            for trn in ofx.iter('STMTTRN'):
-                fitid = '{}{}{}'.format(trn.find("DTPOSTED").text[0:14],trn.find("TRNAMT").text,trn.find("NAME").text.replace(" ", ""))
-                print(fitid)
-                trn.find("FITID").text = fitid
+                # Fix badly designed STMTTRN, iterate and add date
+                for trn in ofx.iter('STMTTRN'):
+                    fitid = '{}{}{}'.format(trn.find("DTPOSTED").text[0:14],trn.find("TRNAMT").text,trn.find("NAME").text.replace(" ", ""))
+                    print(fitid)
+                    trn.find("FITID").text = fitid
 
-            message = ET.tostring(ofx).decode()
-            pretty_message = minidom.parseString(message).toprettyxml()
-            header = str(make_header(version=220))
-            file = "OfxFix_" + os.path.splitext(file)[0] + '.ofx'  # overwrite ofx file
-            print("Creating ofx file: " + file)
-            with open(file, 'w') as filetowrite:
-                filetowrite.write(header + pretty_message)
+                message = ET.tostring(ofx).decode()
+                pretty_message = minidom.parseString(message).toprettyxml()
+                header = str(make_header(version=220))
+                file = "OfxFix_" + os.path.splitext(file)[0] + '.ofx'  # overwrite ofx file
+                print("Creating ofx file: " + file)
+                with open(file, 'w') as filetowrite:
+                    filetowrite.write(header + pretty_message)
 
-# Handling .qif files
-    for file in glob("*.qif"):
-        if not file.startswith("OfxFix"):
-            # print(os.path.splitext(file)[0])
-            file_name = os.path.splitext(file)[0]
-            match file_name:
-                case file_name if "Qif" in file_name:
-                    args.org = "Suncorp"
-                    args.acctid = "SuncorpMain"
-                    args.accttype="SAVINGS"
-                case file_name if "TranHist" in file_name:
-                    args.org = "HSBC"
-                    args.acctid = "HSBCcc"
-                    args.accttype="CD"
+            if file.endswith('.qif'): # Handling .qif files
+                if not file.startswith("OfxFix"):
+                    # print(os.path.splitext(file)[0])
+                    file_name = os.path.splitext(file)[0]
+                    match file_name:
+                        case file_name if "Qif" in file_name:
+                            args.org = "Suncorp"
+                            args.acctid = "SuncorpMain"
+                            args.accttype="SAVINGS"
+                        case file_name if "TranHist" in file_name:
+                            args.org = "HSBC"
+                            args.acctid = "HSBCcc"
+                            args.accttype="CD"
 
-            qif = QIFFile.parse_files(file)
-            # print(
-            genofx(
-                qif,
-                file,
-                args.currency,
-                args.acctid,
-                args.trnuid,
-                args.org,
-                args.balance,
-                args.accttype
-            )
-        # )
+                    qif = QIFFile.parse_files(file)
+                    # print(
+                    genofx(
+                        qif,
+                        file,
+                        args.currency,
+                        args.acctid,
+                        args.trnuid,
+                        args.org,
+                        args.balance,
+                        args.accttype
+                    )
 
 # from ofxparse import OfxParser
 # # with codecs.open('file.ofx') as fileobj:
