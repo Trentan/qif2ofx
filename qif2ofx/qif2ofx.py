@@ -137,7 +137,14 @@ def main():
                             args.org = "HSBC"
                             args.acctid = "HSBCcc"
                             args.accttype="CD"
-
+                        case file_name if "activity" in file_name:
+                            args.org = "AMEX"
+                            args.acctid = "AMEXcc"
+                            args.accttype="CD"
+                        case file_name if "transactions" in file_name:
+                            args.org = "Macquarie"
+                            args.acctid = "MacquarieMain"
+                            args.accttype = "SAVINGS"
                     qif = QIFFile.parse_files(file)
                     # print(
                     genofx(

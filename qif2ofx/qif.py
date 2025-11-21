@@ -48,7 +48,7 @@ class QIFEntry:
                 # and positive means credit
                 amount = amount * -1
             elif line.startswith('D'):
-                date = parser.parse(line[1:].strip(), dayfirst=True, yearfirst=True).replace(tzinfo=UTC)
+                date = parser.parse(line[1:].strip(), dayfirst=True).replace(tzinfo=UTC)
         return QIFEntry(amount, payee, date, None)
 
 @dataclass
