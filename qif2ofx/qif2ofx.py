@@ -14,13 +14,16 @@ from ofxtools.Parser import OFXTree
 from .qif import QIFFile
 
 
-def qif_to_stmttrn(qif_file, savings):
+def qif_to_stmttrn(qif_file, savings, accountId):
     stmttrns = []
     for transaction in qif_file.transactions:
         dtposted = transaction.date.replace(tzinfo=UTC)
         trnamt = transaction.amount
+        # Special inverse handling for different account types
         if(savings): # Reverse transaction if savings!
             trnamt = trnamt*-1
+        if (accountId=="NABcc"):
+            trnamt = trnamt*-1  # Handling NAB credit card
         trntype = 'DEBIT' if trnamt < 0 else 'CREDIT'
         name = transaction.payee.replace("036", "").rstrip()
         # Some reason, HSBC randomly adds a 036 to approved creditcard...
@@ -37,7 +40,7 @@ def qif_to_stmttrn(qif_file, savings):
 
 
 def genofx(qif_file, file_dir, currency, acctid, trnuid, org, balance, accttype):
-    trans = qif_to_stmttrn(qif_file, accttype.upper() == "SAVINGS")
+    trans = qif_to_stmttrn(qif_file, accttype.upper() == "SAVINGS", acctid)
 
     balamt = Decimal(balance) + qif_file.balance()
     ledgerbal = m.LEDGERBAL(balamt=balamt, dtasof=qif_file.last_transaction_date())
@@ -133,6 +136,10 @@ def main():
                             args.org = "Suncorp"
                             args.acctid = "SuncorpMain"
                             args.accttype="SAVINGS"
+                        case file_name if "Transactions" in file_name:
+                            args.org = "NAB"
+                            args.acctid = "NABcc"
+                            args.accttype="CD"
                         case file_name if "TranHist" in file_name:
                             args.org = "HSBC"
                             args.acctid = "HSBCcc"
