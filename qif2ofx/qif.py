@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 
 from ofxtools.utils import UTC
 
+
 @dataclass
 class QIFEntry:
     # Code T
@@ -51,13 +52,14 @@ class QIFEntry:
                 date = parser.parse(line[1:].strip(), dayfirst=True).replace(tzinfo=UTC)
         return QIFEntry(amount, payee, date, None)
 
+
 @dataclass
 class QIFFile:
     type: str
     transactions: List[QIFEntry]
 
     def balance(self):
-        return sum([ x.amount for x in self.transactions ])
+        return sum([x.amount for x in self.transactions])
 
     def last_transaction_date(self):
         return self.transactions[-1].date
@@ -78,9 +80,9 @@ class QIFFile:
 
     @staticmethod
     def parse_file(file):
-        with open(file, 'r') as fp:
+        with open(file, "r", encoding="utf-8", errors="replace") as fp:
             content = fp.read()
-            return QIFFile.parse(content)
+        return QIFFile.parse(content)
 
     @staticmethod
     def merge(qif_files):
@@ -101,4 +103,3 @@ class QIFFile:
         for file_ in files:
             qif_buffer.append(QIFFile.parse_file(file_))
         return QIFFile.merge(qif_buffer)
-

@@ -75,7 +75,7 @@ def genofx(qif_file, file_dir, currency, acctid, trnuid, org, balance, accttype)
 
     file = "OfxFix_" + os.path.splitext(file_dir)[0] + '.ofx'  # /create ofx file
     print("Creating ofx file: " + file)
-    with open(file, 'w') as filetowrite:
+    with open(file, 'w', encoding='utf-8', errors='replace') as filetowrite:
         filetowrite.write(header + pretty_message)
     # return header + pretty_message // No longer required
 
@@ -124,7 +124,7 @@ def main():
                 header = str(make_header(version=220))
                 file = "OfxFix_" + os.path.splitext(file)[0] + '.ofx'  # overwrite ofx file
                 print("Creating ofx file: " + file)
-                with open(file, 'w') as filetowrite:
+                with open(file, 'w', encoding='utf-8', errors='replace') as filetowrite:
                     filetowrite.write(header + pretty_message)
 
             if file.lower().endswith('.qif'): # Handling .qif files
